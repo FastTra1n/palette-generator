@@ -1,7 +1,9 @@
 <template>
   <div class="generator">
     <div class="palette-wrapper">
-      <div v-for="(hsl, index) in palette" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl }"></div>
+      <div v-for="(hsl, index) in palette" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl }">
+        <p>{{ hslToHex(hsl) }}</p>
+      </div>
     </div>
     <button @click="generatePalette">Случайная палитра</button>
   </div>
@@ -24,11 +26,24 @@
           const hue = (baseColor + i * 72) % 360;
           const saturation = 70 + Math.random() * 30;
           const lightness = 50 + Math.random() * 20;
-          colors.push(`hsl(${hue}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`);
+          colors.push(`hsl(${Math.round(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`);
         }
         
         palette.value = colors;
       };
+
+      const hslToHex = (hsl) => {
+        let [h, s, l] = hsl.match(/(\d+(?:\.\d+)?)/g).map(Number);
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+          const k = (n + h / 30) % 12;
+          const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+          return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+
+        return `#${f(0)}${f(8)}${f(4)}`;
+      }
 
       onMounted(() => {
         generatePalette();
@@ -36,7 +51,8 @@
 
       return {
         palette,
-        generatePalette
+        generatePalette,
+        hslToHex
       };
     },
   };
@@ -80,10 +96,23 @@
 }
 
 .palette-wrapper div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
   transition: transform 0.3s;
 }
 
 .palette-wrapper div:hover {
   transform: scale(1.05);
+}
+
+.palette-wrapper p {
+  opacity: 0;
+  transition: opacity 0.3s linear;
+}
+
+.palette-wrapper div:hover p {
+  opacity: 1;
 }
 </style>
