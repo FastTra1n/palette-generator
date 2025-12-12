@@ -1,8 +1,8 @@
 <template>
   <div class="generator">
     <div class="palette-wrapper">
-      <div v-for="(hsl, index) in palette" @click="copyCode(hslToHex(hsl))" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl }">
-        <p>{{ hslToHex(hsl) }}</p>
+      <div v-for="(hsl, index) in palette" @click="copyCode(index)" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl.hsl }">
+        <p>{{ hsl.copied ? 'Скопировано' : hslToHex(hsl.hsl) }}</p>
       </div>
     </div>
     <button @click="generatePalette">Случайная палитра</button>
@@ -26,7 +26,8 @@
           const hue = (baseColor + i * 72) % 360;
           const saturation = 70 + Math.random() * 30;
           const lightness = 50 + Math.random() * 20;
-          colors.push(`hsl(${Math.round(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`);
+          const resultHsl = `hsl(${Math.round(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`
+          colors.push({hsl: resultHsl, copied: false});
         }
         
         palette.value = colors;
@@ -45,8 +46,16 @@
         return `#${f(0)}${f(8)}${f(4)}`;
       }
 
-      const copyCode = async (hex) => {
+      const copyCode = async (index) => {
+        const hsl = palette.value[index];
+        const hex = hslToHex(hsl.hsl)
         await navigator.clipboard.writeText(hex);
+
+        hsl.copied = true;
+
+        setTimeout(() => {
+          hsl.copied = false;
+        }, 2000);
       }
 
       onMounted(() => {
