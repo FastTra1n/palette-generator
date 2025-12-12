@@ -1,7 +1,7 @@
 <template>
   <div class="generator">
     <div class="palette-wrapper">
-      <div v-for="(hsl, index) in palette" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl }">
+      <div v-for="(hsl, index) in palette" @click="copyCode(hslToHex(hsl))" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl }">
         <p>{{ hslToHex(hsl) }}</p>
       </div>
     </div>
@@ -45,6 +45,10 @@
         return `#${f(0)}${f(8)}${f(4)}`;
       }
 
+      const copyCode = async (hex) => {
+        await navigator.clipboard.writeText(hex);
+      }
+
       onMounted(() => {
         generatePalette();
       })
@@ -52,7 +56,8 @@
       return {
         palette,
         generatePalette,
-        hslToHex
+        hslToHex,
+        copyCode
       };
     },
   };
@@ -105,6 +110,10 @@
 
 .palette-wrapper div:hover {
   transform: scale(1.05);
+}
+
+.palette-wrapper div:active {
+  transform: scale(0.9);
 }
 
 .palette-wrapper p {
