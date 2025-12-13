@@ -2,7 +2,8 @@
   <div class="generator">
     <div class="palette-wrapper">
       <div v-for="(hsl, index) in palette" @click="copyCode(index)" :key="index" :style="{ width: '250px', height: '300px', backgroundColor: hsl.hsl }">
-        <p>{{ hsl.copied ? 'Скопировано' : hslToHex(hsl.hsl) }}</p>
+        <p :style="{color: hsl.hsl}">{{ hsl.copied ? 'Скопировано' : hslToHex(hsl.hsl) }}</p>
+        <img :style="{color: hsl.hsl}" @click.stop="pinColor(index)" src="../assets/pin.png" width="30px">
       </div>
     </div>
     <button @click="generatePalette">Случайная палитра</button>
@@ -23,11 +24,15 @@
         const colors = [];
         
         for (let i = 0; i < 5; i++) {
+          if (palette.value.length > 0 && palette.value[i].locked) {
+            colors.push(palette.value[i])
+            continue;
+          }
           const hue = (baseColor + i * 72) % 360;
           const saturation = 70 + Math.random() * 30;
           const lightness = 50 + Math.random() * 20;
           const resultHsl = `hsl(${Math.round(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`
-          colors.push({hsl: resultHsl, copied: false});
+          colors.push({hsl: resultHsl, copied: false, locked: false});
         }
         
         palette.value = colors;
@@ -58,6 +63,10 @@
         }, 2000);
       }
 
+      const pinColor = (index) => {
+        palette.value[index].locked = !palette.value[index].locked;
+      };
+
       onMounted(() => {
         generatePalette();
       })
@@ -66,7 +75,8 @@
         palette,
         generatePalette,
         hslToHex,
-        copyCode
+        copyCode,
+        pinColor
       };
     },
   };
@@ -110,6 +120,7 @@
 }
 
 .palette-wrapper div {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,12 +136,24 @@
   transform: scale(0.9);
 }
 
-.palette-wrapper p {
+.palette-wrapper p, img {
+  filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
+  mix-blend-mode: luminosity;
   opacity: 0;
   transition: opacity 0.3s linear;
 }
 
+.palette-wrapper img {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
 .palette-wrapper div:hover p {
+  opacity: 1;
+}
+
+.palette-wrapper div:hover img {
   opacity: 1;
 }
 </style>
