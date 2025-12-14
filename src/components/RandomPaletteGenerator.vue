@@ -21,11 +21,14 @@
         <option value="HEX">HEX</option>
         <option value="RGB">RGB</option>
       </select>
+
+      <label>Тёмная тема фона:</label>
+      <input type="checkbox" v-model="darkTheme">
     </div>
 
     <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
       <h2>Превью в mockup интерфейсе</h2>
-      <div class="mockup-container">
+      <div class="mockup-container" :class="{ dark: darkTheme }">
         <h3 :style="{ color: palette.length > 0 ? palette[0].hsl : '#000' }">Это заголовок карточки</h3>
 
         <div class="mockup-card" :style="{ backgroundColor: palette.length > 1 ? palette[1].hsl : '#fff' }">
@@ -48,6 +51,7 @@
       const palette = ref([]);
       const numColors = ref(5);
       const displayFormat = ref('HEX');
+      const darkTheme = ref(false);
       
       const generatePalette = () => {
         const baseColor = Math.random() * 360;
@@ -160,6 +164,7 @@
         palette,
         numColors,
         displayFormat,
+        darkTheme,
         generatePalette,
         hslToHex,
         hslToRGB,
@@ -274,6 +279,10 @@
   background-color: #f9f9f9;
   border-radius: 8px;
   transition: background-color 0.3s;
+}
+
+.mockup-container.dark {
+  background-color: #343434;
 }
 
 .mockup-card {
