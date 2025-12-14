@@ -7,6 +7,7 @@
       </div>
     </div>
     <button @click="generatePalette">Случайная палитра</button>
+    
     <div class="controls">
       <label>Количество цветов:</label>
       <select v-model="numColors">
@@ -20,6 +21,19 @@
         <option value="HEX">HEX</option>
         <option value="RGB">RGB</option>
       </select>
+    </div>
+
+    <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
+      <h2>Превью в mockup интерфейсе</h2>
+      <div class="mockup-container">
+        <h3 :style="{ color: palette.length > 0 ? palette[0].hsl : '#000' }">Это заголовок карточки</h3>
+
+        <div class="mockup-card" :style="{ backgroundColor: palette.length > 1 ? palette[1].hsl : '#fff' }">
+          <p :style="{ color: palette.length > 2 ? palette[2].hsl : '#000' }">А это текст внутри карточки</p>
+        </div>
+
+        <button class="mockup-button" :style="{ backgroundColor: palette.length > 3 ? palette[3].hsl : '#007bff', color: palette.length > 4 ? palette[4].hsl : '#fff' }">Ещё и с кнопкой!</button>
+      </div>
     </div>
   </div>
 </template>
@@ -246,5 +260,33 @@
 .controls select {
   padding: 5px;
   border-radius: 5px;
+}
+
+.mockup-preview {
+  margin-top: 40px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.mockup-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.mockup-card {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.mockup-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>
