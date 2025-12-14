@@ -24,6 +24,9 @@
 
       <label>Тёмная тема фона:</label>
       <input type="checkbox" v-model="darkTheme">
+
+      <label>Выбрать базовый цвет:</label>
+      <input type="color" v-model="selectedBaseColor">
     </div>
 
     <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
@@ -52,9 +55,10 @@
       const numColors = ref(5);
       const displayFormat = ref('HEX');
       const darkTheme = ref(false);
+      const selectedBaseColor = ref('');
       
       const generatePalette = () => {
-        const baseColor = Math.random() * 360;
+        const baseColor = !selectedBaseColor.value ? Math.random() * 360 : hexToHsl(selectedBaseColor.value).h;
         const colors = [];
         const offset = 360 / numColors.value;
 
@@ -86,6 +90,31 @@
 
         return `#${f(0)}${f(8)}${f(4)}`;
       }
+
+      const hexToHsl = (hex) => {
+        let r = parseInt(hex.slice(1, 3), 16) / 255;
+        let g = parseInt(hex.slice(3, 5), 16) / 255;
+        let b = parseInt(hex.slice(5, 7), 16) / 255;
+
+        let max = Math.max(r, g, b);
+        let min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) {
+          h = s = 0;
+        } else {
+          let d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+          }
+          h /= 6;
+        }
+
+        return { h: h * 360, s: s * 100, l: l * 100 };
+      };
 
       const hslToRGB = (hsl) => {
         let [h, s, l] = hsl.match(/(\d+(?:\.\d+)?)/g).map(Number);
@@ -165,8 +194,10 @@
         numColors,
         displayFormat,
         darkTheme,
+        selectedBaseColor,
         generatePalette,
         hslToHex,
+        hexToHsl,
         hslToRGB,
         copyCode,
         pinColor
