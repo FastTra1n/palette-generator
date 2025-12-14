@@ -25,7 +25,7 @@
 </template>
 
 <script>
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, watch } from 'vue';
 
   export default {
     name: 'RandomPaletteGenerator',
@@ -53,6 +53,7 @@
         }
         
         palette.value = colors;
+        saveToStorage();
       };
 
       const hslToHex = (hsl) => {
@@ -107,9 +108,39 @@
         palette.value[index].locked = !palette.value[index].locked;
       };
 
-      onMounted(() => {
+      const loadFromStorage = () => {
+        const savedData = localStorage.getItem('paletteData');
+        if (!savedData) {
+          generatePalette();
+          return;
+        }
+        const data = JSON.parse(savedData);
+        palette.value = data.savedPalette;
+        numColors.value = data.savedNumColors;
+        displayFormat.value = data.savedDisplayFormat;
+      };
+
+      const saveToStorage = () => {
+        const data = {
+          savedPalette: palette.value,
+          savedNumColors: numColors.value,
+          savedDisplayFormat: displayFormat.value
+        };
+        localStorage.setItem('paletteData', JSON.stringify(data));
+      };
+
+      watch(numColors, () => {
+        palette.value = [];
         generatePalette();
+      });
+
+      watch(displayFormat, () => {
+        saveToStorage();
       })
+
+      onMounted(() => {
+        loadFromStorage();
+      });
 
       return {
         palette,
