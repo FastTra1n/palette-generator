@@ -35,6 +35,14 @@
         <option value="triadic">Триада</option>
         <option value="complementary">Комплементарная</option>
       </select>
+
+      <label>По настроению:</label>
+      <select v-model="mood">
+        <option value="neutral">Нейтральное</option>
+        <option value="calm">Спокойное</option>
+        <option value="energetic">Энергичное</option>
+        <option value="professional">Профессиональное</option>
+      </select>
     </div>
 
     <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
@@ -64,7 +72,8 @@
       const displayFormat = ref('HEX');
       const darkTheme = ref(false);
       const selectedBaseColor = ref('');
-      const scheme = ref('triadic')
+      const scheme = ref('triadic');
+      const mood = ref('neutral');
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -115,12 +124,27 @@
             continue;
           }
           let hue = (baseColor + i * offset) % 360;
-          let saturation = 70 + Math.random() * 30;
-          let lightness = 50 + Math.random() * 20;
-          if (scheme.value === 'monochromatic') {
-            hue = baseColor;
-            saturation = 50 + Math.random() * 50;
-            lightness = 30 + Math.random() * 40;
+          let saturation, lightness;
+          
+          switch (mood.value) {
+            case 'calm':
+              saturation = 30 + Math.random() * 40;
+              lightness = 60 + Math.random() * 30;
+              break;
+            case 'energetic':
+              saturation = 80 + Math.random() * 20;
+              lightness = 40 + Math.random() * 20;
+              break;
+            case 'professional':
+              saturation = 20 + Math.random() * 30;
+              lightness = 40 + Math.random() * 40;
+              if (hue > 180 && hue < 300) hue = (hue + 60) % 360;
+              break;
+            case 'neutral':
+            default:
+              saturation = 70 + Math.random() * 30;
+              lightness = 50 + Math.random() * 20;
+              break;
           }
           const resultHsl = `hsl(${Math.round(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`
           colors.push({hsl: resultHsl, copied: false, locked: false});
@@ -227,6 +251,7 @@
         darkTheme,
         selectedBaseColor,
         scheme,
+        mood,
         generatePalette,
         hslToHex,
         hexToHsl,
