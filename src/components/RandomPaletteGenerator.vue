@@ -27,6 +27,14 @@
 
       <label>Выбрать базовый цвет:</label>
       <input type="color" v-model="selectedBaseColor">
+
+      <label>Тип палитры:</label>
+      <select v-model="scheme">
+        <option value="analogous">Аналогичная</option>
+        <option value="monochromatic">Монохромная</option>
+        <option value="triadic">Триада</option>
+        <option value="complementary">Комплементарная</option>
+      </select>
     </div>
 
     <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
@@ -56,6 +64,7 @@
       const displayFormat = ref('HEX');
       const darkTheme = ref(false);
       const selectedBaseColor = ref('');
+      const scheme = ref('triadic')
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -83,16 +92,36 @@
       const generatePalette = () => {
         const baseColor = !selectedBaseColor.value ? Math.random() * 360 : hexToHsl(selectedBaseColor.value).h;
         const colors = [];
-        const offset = 360 / numColors.value;
+        let offset;
+
+        switch (scheme.value) {
+          case 'analogous':
+            offset = 40;
+            break;
+          case 'monochromatic':
+            offset = 0;
+            break;
+          case 'triadic':
+            offset = 360 / numColors.value;
+            break;
+          case 'complementary':
+            offset = 180
+            break;
+        }
 
         for (let i = 0; i < numColors.value; i++) {
           if (palette.value.length > 0 && palette.value[i] && palette.value[i].locked) {
             colors.push(palette.value[i])
             continue;
           }
-          const hue = (baseColor + i * offset) % 360;
-          const saturation = 70 + Math.random() * 30;
-          const lightness = 50 + Math.random() * 20;
+          let hue = (baseColor + i * offset) % 360;
+          let saturation = 70 + Math.random() * 30;
+          let lightness = 50 + Math.random() * 20;
+          if (scheme.value === 'monochromatic') {
+            hue = baseColor;
+            saturation = 50 + Math.random() * 50;
+            lightness = 30 + Math.random() * 40;
+          }
           const resultHsl = `hsl(${Math.round(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%)`
           colors.push({hsl: resultHsl, copied: false, locked: false});
         }
@@ -197,6 +226,7 @@
         displayFormat,
         darkTheme,
         selectedBaseColor,
+        scheme,
         generatePalette,
         hslToHex,
         hexToHsl,
