@@ -56,6 +56,29 @@
       const displayFormat = ref('HEX');
       const darkTheme = ref(false);
       const selectedBaseColor = ref('');
+
+      const loadFromStorage = () => {
+        const savedData = localStorage.getItem('paletteData');
+        if (!savedData) {
+          generatePalette();
+          return;
+        }
+        const data = JSON.parse(savedData);
+        palette.value = data.savedPalette;
+        numColors.value = data.savedNumColors;
+        displayFormat.value = data.savedDisplayFormat;
+      };
+
+      const saveToStorage = () => {
+        const data = {
+          savedPalette: palette.value,
+          savedNumColors: numColors.value,
+          savedDisplayFormat: displayFormat.value
+        };
+        localStorage.setItem('paletteData', JSON.stringify(data));
+      };
+
+      loadFromStorage();
       
       const generatePalette = () => {
         const baseColor = !selectedBaseColor.value ? Math.random() * 360 : hexToHsl(selectedBaseColor.value).h;
@@ -153,27 +176,6 @@
 
       const pinColor = (index) => {
         palette.value[index].locked = !palette.value[index].locked;
-      };
-
-      const loadFromStorage = () => {
-        const savedData = localStorage.getItem('paletteData');
-        if (!savedData) {
-          generatePalette();
-          return;
-        }
-        const data = JSON.parse(savedData);
-        palette.value = data.savedPalette;
-        numColors.value = data.savedNumColors;
-        displayFormat.value = data.savedDisplayFormat;
-      };
-
-      const saveToStorage = () => {
-        const data = {
-          savedPalette: palette.value,
-          savedNumColors: numColors.value,
-          savedDisplayFormat: displayFormat.value
-        };
-        localStorage.setItem('paletteData', JSON.stringify(data));
       };
 
       watch(numColors, () => {
