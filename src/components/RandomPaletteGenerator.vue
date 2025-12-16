@@ -49,12 +49,15 @@
       <h2>Превью в mockup интерфейсе</h2>
       <div class="mockup-container" :class="{ dark: darkTheme }">
         <h3 :style="{ color: palette.length > 0 ? palette[0].hsl : '#000' }">Это заголовок карточки</h3>
+        <span class="contrast-level">Контраст заголовка: {{ getContrastLevel(darkTheme ? "#343434" : "#f9f9f9", palette.length > 0 ? palette[0].hsl : '#000') }}</span>
 
         <div class="mockup-card" :style="{ backgroundColor: palette.length > 1 ? palette[1].hsl : '#fff' }">
           <p :style="{ color: palette.length > 2 ? palette[2].hsl : '#000' }">А это текст внутри карточки</p>
+          <span class="contrast-level">Контраст текста в карточке: {{ getContrastLevel(palette.length > 1 ? palette[1].hsl : '#fff', palette.length > 2 ? palette[2].hsl : '#000') }}</span>
         </div>
 
         <button class="mockup-button" :style="{ backgroundColor: palette.length > 3 ? palette[3].hsl : '#007bff', color: palette.length > 4 ? palette[4].hsl : '#fff' }">Ещё и с кнопкой!</button>
+        <span class="contrast-level">Контраст кнопки: {{ getContrastLevel(palette.length > 3 ? palette[3].hsl : '#007bff', palette.length > 4 ? palette[4].hsl : '#fff') }}</span>
       </div>
     </div>
   </div>
@@ -215,6 +218,13 @@
         return `rgb(${r}, ${g}, ${b})`;
       }
 
+      const hexToRGB = (hex) => {
+        let r = parseInt(hex.slice(1, 3), 16);
+        let g = parseInt(hex.slice(3, 5), 16);
+        let b = parseInt(hex.slice(5, 7), 16);
+        return `rgb(${r}, ${g}, ${b})`;
+      };
+
       const copyCode = async (index) => {
         const hsl = palette.value[index];
         const code = displayFormat.value === 'HEX' ? hslToHex(hsl.hsl) : hslToRGB(hsl.hsl)
@@ -229,6 +239,29 @@
 
       const pinColor = (index) => {
         palette.value[index].locked = !palette.value[index].locked;
+      };
+
+      const getLuminance = (rgb) => {
+        const [r, g, b] = rgb.match(/\d+/g).map(Number).map(c => c / 255);
+        const a = [r, g, b].map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+      };
+
+      const calculateContrast = (bgColor, textColor) => {
+        const bgRGB = bgColor.startsWith('hsl') ? hslToRGB(bgColor) : hexToRGB(bgColor);
+        const textRGB = textColor.startsWith('hsl') ? hslToRGB(textColor) : hexToRGB(textColor);
+        const luminanceBg = getLuminance(bgRGB);
+        const luminanceText = getLuminance(textRGB);
+        const brighter = Math.max(luminanceBg, luminanceText);
+        const darker = Math.min(luminanceBg, luminanceText);
+        return (brighter + 0.05) / (darker + 0.05);
+      };
+
+      const getContrastLevel = (bg, fg) => {
+        const ratio = calculateContrast(bg, fg);
+        if (ratio >= 7) return 'AAA';
+        if (ratio >= 4.5) return 'AA';
+        return 'Недостаточно';
       };
 
       watch(numColors, () => {
@@ -256,8 +289,10 @@
         hslToHex,
         hexToHsl,
         hslToRGB,
+        hexToRGB,
         copyCode,
-        pinColor
+        pinColor,
+        getContrastLevel
       };
     },
   };
@@ -385,5 +420,12 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.contrast-level {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  display: block;
 }
 </style>
