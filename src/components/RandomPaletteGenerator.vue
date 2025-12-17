@@ -45,23 +45,25 @@
       </select>
     </div>
 
-    <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
-      <h2>Превью в mockup интерфейсе</h2>
-      <div class="mockup-container" :class="{ dark: darkTheme }">
-        <h3 :style="{ color: palette.length > 0 ? palette[0].hsl : '#000' }">Это заголовок карточки</h3>
-        <span class="contrast-level">Контраст заголовка: {{ getContrastLevel(darkTheme ? "#343434" : "#f9f9f9", palette.length > 0 ? palette[0].hsl : '#000') }}</span>
+    <div class="visualization-container">
+      <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
+        <h2>Превью в mockup интерфейсе</h2>
+        <div class="mockup-container" :class="{ dark: darkTheme }">
+          <h3 :style="{ color: palette.length > 0 ? palette[0].hsl : '#000' }">Это заголовок карточки</h3>
+          <span class="contrast-level">Контраст заголовка: {{ getContrastLevel(darkTheme ? "#343434" : "#f9f9f9", palette.length > 0 ? palette[0].hsl : '#000') }}</span>
 
-        <div class="mockup-card" :style="{ backgroundColor: palette.length > 1 ? palette[1].hsl : '#fff' }">
-          <p :style="{ color: palette.length > 2 ? palette[2].hsl : '#000' }">А это текст внутри карточки</p>
-          <span class="contrast-level">Контраст текста в карточке: {{ getContrastLevel(palette.length > 1 ? palette[1].hsl : '#fff', palette.length > 2 ? palette[2].hsl : '#000') }}</span>
+          <div class="mockup-card" :style="{ backgroundColor: palette.length > 1 ? palette[1].hsl : '#fff' }">
+            <p :style="{ color: palette.length > 2 ? palette[2].hsl : '#000' }">А это текст внутри карточки</p>
+            <span class="contrast-level">Контраст текста в карточке: {{ getContrastLevel(palette.length > 1 ? palette[1].hsl : '#fff', palette.length > 2 ? palette[2].hsl : '#000') }}</span>
+          </div>
+
+          <button class="mockup-button" :style="{ backgroundColor: palette.length > 3 ? palette[3].hsl : '#007bff', color: palette.length > 4 ? palette[4].hsl : '#fff' }">Ещё и с кнопкой!</button>
+          <span class="contrast-level">Контраст кнопки: {{ getContrastLevel(palette.length > 3 ? palette[3].hsl : '#007bff', palette.length > 4 ? palette[4].hsl : '#fff') }}</span>
         </div>
-
-        <button class="mockup-button" :style="{ backgroundColor: palette.length > 3 ? palette[3].hsl : '#007bff', color: palette.length > 4 ? palette[4].hsl : '#fff' }">Ещё и с кнопкой!</button>
-        <span class="contrast-level">Контраст кнопки: {{ getContrastLevel(palette.length > 3 ? palette[3].hsl : '#007bff', palette.length > 4 ? palette[4].hsl : '#fff') }}</span>
       </div>
-    </div>
 
-    <canvas ref="color-wheel" width="400" height="400"></canvas>
+      <canvas ref="color-wheel" width="400" height="400"></canvas>
+    </div>
   </div>
 </template>
 
@@ -480,7 +482,6 @@
 }
 
 .mockup-preview {
-  margin-top: 40px;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 10px;
@@ -516,5 +517,15 @@
   color: #666;
   margin-top: 5px;
   display: block;
+}
+
+.visualization-container {
+  display: flex;
+  min-width: 100%;
+  min-height: 100%;
+  justify-content: center;
+  align-items: center;
+  margin-top: 40px;
+  gap: 300px;
 }
 </style>
