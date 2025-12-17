@@ -60,11 +60,13 @@
         <span class="contrast-level">Контраст кнопки: {{ getContrastLevel(palette.length > 3 ? palette[3].hsl : '#007bff', palette.length > 4 ? palette[4].hsl : '#fff') }}</span>
       </div>
     </div>
+
+    <canvas ref="color-wheel" width="400" height="400"></canvas>
   </div>
 </template>
 
 <script>
-  import { ref, onMounted, watch } from 'vue';
+  import { ref, onMounted, watch, useTemplateRef } from 'vue';
 
   export default {
     name: 'RandomPaletteGenerator',
@@ -77,6 +79,7 @@
       const selectedBaseColor = ref('');
       const scheme = ref('triadic');
       const mood = ref('neutral');
+      const colorWheelCanvas = useTemplateRef('color-wheel');
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -155,6 +158,7 @@
         
         palette.value = colors;
         saveToStorage();
+        drawColorWheel();
       };
 
       const hslToHex = (hsl) => {
@@ -264,6 +268,90 @@
         return 'Недостаточно';
       };
 
+      const drawColorWheel = () => {
+        const canvas = colorWheelCanvas.value;
+        const ctx = canvas.getContext('2d');
+        const radius = canvas.width / 2;
+        const image = ctx.createImageData(canvas.width, canvas.height);
+        const data = image.data;
+
+        const xy2polar = (x, y) => {
+          const r = Math.sqrt(x * x + y * y);
+          const phi = Math.atan2(y, x);
+          return [r, phi];
+        };
+      
+        const rad2deg = (rad) => {
+          return ((rad + Math.PI) / (2 * Math.PI)) * 360;
+        };
+      
+        const hsvToRgb = (h, s, v) => {
+          h = h / 360;
+          let r, g, b;
+          let i = Math.floor(h * 6);
+          let f = h * 6 - i;
+          let p = v * (1 - s);
+          let q = v * (1 - f * s);
+          let t = v * (1 - (1 - f) * s);
+        
+          switch (i % 6) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+          }
+        
+          return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        };
+      
+        for (let x = -radius; x < radius; x++) {
+          for (let y = -radius; y < radius; y++) {
+            const [dist, phi] = xy2polar(x, y);
+          
+            if (dist > radius) continue;
+          
+            const deg = rad2deg(phi);
+            const hue = deg;
+            const saturation = dist / radius;
+            const value = 1.0;
+          
+            const [red, green, blue] = hsvToRgb(hue, saturation, value);
+            const adjustedX = x + radius;
+            const adjustedY = y + radius;
+            const index = (adjustedY * canvas.width + adjustedX) * 4;
+          
+            data[index] = red;
+            data[index + 1] = green;
+            data[index + 2] = blue;
+            data[index + 3] = 255;
+          }
+        }
+      
+        ctx.putImageData(image, 0, 0);
+      
+        palette.value.forEach((color, index) => {
+          const hsl = hexToHsl(hslToHex(color.hsl));
+          const hue = hsl.h;
+          const saturation = hsl.s / 100;
+        
+          const angleRad = (hue / 360) * 2 * Math.PI + Math.PI;
+          const rDist = radius * saturation;
+        
+          const markX = radius + rDist * Math.cos(angleRad);
+          const markY = radius + rDist * Math.sin(angleRad);
+
+          ctx.beginPath();
+          ctx.arc(markX, markY, 8, 0, 2 * Math.PI);
+          ctx.fillStyle = color.hsl;
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+      };
+
       watch(numColors, () => {
         palette.value = [];
         generatePalette();
@@ -271,10 +359,11 @@
 
       watch(displayFormat, () => {
         saveToStorage();
-      })
+      });
 
       onMounted(() => {
         loadFromStorage();
+        drawColorWheel();
       });
 
       return {
