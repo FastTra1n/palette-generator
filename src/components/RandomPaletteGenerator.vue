@@ -6,7 +6,13 @@
         <img :style="{color: hsl.hsl}" @click.stop="pinColor(index)" src="../assets/pin.png" width="30px">
       </div>
     </div>
-    <button @click="generatePalette">Случайная палитра</button>
+    <div class="palette-actions">
+      <button @click="generatePalette">Случайная палитра</button>
+      <button @click="savePalette">Сохранить палитру</button>
+      <Modal title="Создать коллекцию" v-if="showCreateCollection">
+        <h2>Test</h2>
+      </Modal>
+    </div>
     
     <div class="controls">
       <label>Количество цветов:</label>
@@ -69,9 +75,14 @@
 
 <script>
   import { ref, onMounted, watch, useTemplateRef } from 'vue';
-
+  
+  import Modal from './Modal.vue';
+  
   export default {
     name: 'RandomPaletteGenerator',
+    components: {
+      Modal,
+    },
     
     setup() {
       const palette = ref([]);
@@ -82,6 +93,7 @@
       const scheme = ref('triadic');
       const mood = ref('neutral');
       const colorWheelCanvas = useTemplateRef('color-wheel');
+      const showCreateCollection = ref(false);
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -161,6 +173,10 @@
         palette.value = colors;
         saveToStorage();
         drawColorWheel();
+      };
+
+      const savePalette = () => {
+        showCreateCollection.value = true;
       };
 
       const hslToHex = (hsl) => {
@@ -376,7 +392,9 @@
         selectedBaseColor,
         scheme,
         mood,
+        showCreateCollection,
         generatePalette,
+        savePalette,
         hslToHex,
         hexToHsl,
         hslToRGB,
@@ -416,6 +434,13 @@
   cursor: pointer;
   transition: background-color 0.3s;
   margin-bottom: 10px;
+}
+
+.palette-actions {
+  display: flex;
+  justify-content: center;
+  width: 500px;
+  gap: 50px;
 }
 
 .generator button:hover {
