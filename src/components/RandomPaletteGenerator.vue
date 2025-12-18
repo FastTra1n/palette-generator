@@ -80,6 +80,15 @@
 
       <canvas ref="color-wheel" width="400" height="400"></canvas>
     </div>
+
+    <div class="palette-collection">
+      <div v-for="(collection, index) in paletteCollections" :key="index">
+        <h3>{{ collection.name }}</h3>
+        <div class="palette-collection-wrapper">
+          <div v-for="(hsl, index) in collection.palettes" :key="`color-${index}`" :style="{ width: '50px', height: '50px', backgroundColor: hsl.hsl }"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -105,6 +114,7 @@
       const colorWheelCanvas = useTemplateRef('color-wheel');
 
       const showCreateCollection = ref(false);
+      const paletteCollections = ref([]);
       const collectionName = ref('');
       const collectionTags = ref('');
 
@@ -398,6 +408,12 @@
         collectionName.value = '';
         collectionTags.value = '';
         showCreateCollection.value = false;
+        paletteCollections.value = collections;
+      };
+
+      const loadCollections = () => {
+        const savedData = localStorage.getItem('paletteCollection');
+        paletteCollections.value = savedData ? JSON.parse(savedData) : [];
       };
 
       watch(numColors, () => {
@@ -411,6 +427,7 @@
 
       onMounted(() => {
         loadFromStorage();
+        loadCollections();
         drawColorWheel();
       });
 
@@ -425,6 +442,7 @@
         showCreateCollection,
         collectionName,
         collectionTags,
+        paletteCollections,
         generatePalette,
         savePalette,
         hslToHex,
@@ -589,5 +607,10 @@
 
 .collection-name, .collection-tags {
   margin-bottom: 10px;
+}
+
+.palette-collection-wrapper {
+  display: flex;
+  gap: 10px;
 }
 </style>
