@@ -9,8 +9,18 @@
     <div class="palette-actions">
       <button @click="generatePalette">Случайная палитра</button>
       <button @click="savePalette">Сохранить палитру</button>
-      <Modal title="Создать коллекцию" v-if="showCreateCollection">
-        <h2>Test</h2>
+      <Modal title="Создать коллекцию" v-if="showCreateCollection" @close="showCreateCollection = false">
+        <form @submit.prevent="handleCollectionCreate">
+          <div class="collection-name">
+            <label>Введите название коллекции:</label>
+            <input type="text" v-model="collectionName">
+          </div>
+          <div class="collection-tags">
+            <label>Укажите теги коллекции:</label>
+            <input type="text" v-model="collectionTags">
+          </div>
+          <button type="submit">Создать</button>
+        </form>
       </Modal>
     </div>
     
@@ -93,7 +103,10 @@
       const scheme = ref('triadic');
       const mood = ref('neutral');
       const colorWheelCanvas = useTemplateRef('color-wheel');
+
       const showCreateCollection = ref(false);
+      const collectionName = ref('');
+      const collectionTags = ref('');
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -112,7 +125,7 @@
           savedPalette: palette.value,
           savedNumColors: numColors.value,
           savedDisplayFormat: displayFormat.value
-        };
+        };  
         localStorage.setItem('paletteData', JSON.stringify(data));
       };
 
@@ -370,6 +383,23 @@
         });
       };
 
+      const handleCollectionCreate = (e) => {
+        e.preventDefault();
+
+        const savedData = localStorage.getItem('paletteCollection');
+        const collections = savedData ? JSON.parse(savedData) : [];
+        collections.push({
+          name: collectionName.value,
+          tags: collectionTags.value.split(' '),
+          palettes: palette.value
+        });
+        localStorage.setItem('paletteCollection', JSON.stringify(collections));
+
+        collectionName.value = '';
+        collectionTags.value = '';
+        showCreateCollection.value = false;
+      };
+
       watch(numColors, () => {
         palette.value = [];
         generatePalette();
@@ -393,6 +423,8 @@
         scheme,
         mood,
         showCreateCollection,
+        collectionName,
+        collectionTags,
         generatePalette,
         savePalette,
         hslToHex,
@@ -401,7 +433,8 @@
         hexToRGB,
         copyCode,
         pinColor,
-        getContrastLevel
+        getContrastLevel,
+        handleCollectionCreate
       };
     },
   };
@@ -552,5 +585,9 @@
   align-items: center;
   margin-top: 40px;
   gap: 300px;
+}
+
+.collection-name, .collection-tags {
+  margin-bottom: 10px;
 }
 </style>
