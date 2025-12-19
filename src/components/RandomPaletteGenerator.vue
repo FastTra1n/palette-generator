@@ -9,7 +9,7 @@
     <div class="palette-actions">
       <button @click="generatePalette">Случайная палитра</button>
       <button @click="savePalette">Сохранить палитру</button>
-      <Modal title="Создать коллекцию" v-if="showCreateCollection" @close="showCreateCollection = false">
+      <Modal title="Создать коллекцию" :show="showCreateCollection" @close="showCreateCollection = false">
         <form @submit.prevent="handleCollectionCreate">
           <div class="collection-name">
             <label>Введите название коллекции:</label>
@@ -81,11 +81,25 @@
       <canvas ref="color-wheel" width="400" height="400"></canvas>
     </div>
 
-    <div class="palette-collection">
-      <div v-for="(collection, index) in paletteCollections" :key="index">
-        <h3>{{ collection.name }}</h3>
-        <div class="palette-collection-wrapper">
-          <div v-for="(hsl, index) in collection.palettes" :key="`color-${index}`" :style="{ width: '50px', height: '50px', backgroundColor: hsl.hsl }"></div>
+    <div class="collections-section">
+      <h2>Сохранённые коллекции</h2>
+      <div class="collections-list">
+        <div class="collection-card" v-for="(collection, index) in paletteCollections" :key="index">
+          <div class="collection-header">
+            <h3>{{ collection.name }}</h3>
+          </div>
+          <div class="collection-tags">
+            <span v-for="(tag, tagIndex) in collection.tags" :key="tagIndex" class="tag">{{ tag }}</span>
+          </div>
+          <div class="collection-palette">
+            <div class="palette-collection-wrapper">
+              <div class="color-watch" v-for="(hsl, colorIndex) in collection.palettes" :key="colorIndex" :style="{ width: '50px', height: '50px', backgroundColor: hsl.hsl }"></div>
+            </div>
+          </div>
+          <div class="collection-actions">
+            <button @click="loadSelectedCollection(index)">Загрузить</button>
+            <button @click="deleteCollection(index)">Удалить</button>
+          </div>
         </div>
       </div>
     </div>
@@ -416,6 +430,18 @@
         paletteCollections.value = savedData ? JSON.parse(savedData) : [];
       };
 
+      const loadSelectedCollection = (index) => {
+        palette.value = paletteCollections.value[index].palettes;
+        saveToStorage();
+      };
+
+      const deleteCollection = (index) => {
+        if (confirm('Вы уверены, что хотите удалить коллекцию?')) {
+          paletteCollections.value.splice(index, 1);
+        }
+        localStorage.setItem('paletteCollection', JSON.stringify(paletteCollections.value));
+      };
+
       watch(numColors, () => {
         palette.value = [];
         generatePalette();
@@ -452,165 +478,268 @@
         copyCode,
         pinColor,
         getContrastLevel,
-        handleCollectionCreate
+        handleCollectionCreate,
+        loadCollections,
+        loadSelectedCollection,
+        deleteCollection
       };
     },
   };
 </script>
 
 <style scoped>
-.generator {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  align-items: center;
-}
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
 
-.palette-wrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: flex-start;
-}
+  input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
 
-.generator button {
-  width: 200px;
-  height: 50px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-bottom: 10px;
-}
+  button[type="submit"] {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
 
-.palette-actions {
-  display: flex;
-  justify-content: center;
-  width: 500px;
-  gap: 50px;
-}
+  button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
 
-.generator button:hover {
-  background-color: #1787ffff;
-}
+  .generator {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+  }
 
-.generator button:active {
-  background-color: #3898ffff;
-}
+  .palette-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+  }
 
-.palette-wrapper div {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  transition: transform 0.3s;
-}
+  .generator button {
+    width: 200px;
+    height: 50px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 10px;
+  }
 
-.palette-wrapper div:hover {
-  transform: scale(1.05);
-}
+  .palette-actions {
+    display: flex;
+    justify-content: center;
+    width: 500px;
+    gap: 50px;
+  }
 
-.palette-wrapper div:active {
-  transform: scale(0.9);
-}
+  .collections-section {
+    margin-top: 40px;
+    width: 100%;
+  }
 
-.palette-wrapper p, img {
-  filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
-  mix-blend-mode: luminosity;
-  opacity: 0;
-  transition: opacity 0.3s linear;
-}
+  .collections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 
-.palette-wrapper img {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-}
+  .collection-card {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s;
+  }
 
-.palette-wrapper div:hover p {
-  opacity: 1;
-}
+  .collection-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
 
-.palette-wrapper div:hover img {
-  opacity: 1;
-}
+  .collection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
 
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
-}
+  .collection-tags {
+    display: flex;
+    gap: 5px;
+  }
 
-.controls label {
-  font-weight: bold;
-}
+  .tag {
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    border-radius: 20px;
+    font-size: 12px;
+  }
 
-.controls select {
-  padding: 5px;
-  border-radius: 5px;
-}
+  .palette-collection-wrapper {
+    padding: 20px 0;
+    display: flex;
+    gap: 10px;
+  }
 
-.mockup-preview {
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
+  .collection-palette {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
 
-.mockup-container {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
+  .color-swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
 
-.mockup-container.dark {
-  background-color: #343434;
-}
+  .collection-actions {
+    display: flex;
+    gap: 10px;
+  }
 
-.mockup-card {
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-bottom: 10px;
-}
+  .collection-actions button {
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
 
-.mockup-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+  .collection-actions button:first-child {
+    background-color: #007bff;
+    color: white;
+  }
 
-.contrast-level {
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
-  display: block;
-}
+  .collection-actions button:last-child {
+    background-color: #ff4d4d;
+    color: white;
+  }
 
-.visualization-container {
-  display: flex;
-  min-width: 100%;
-  min-height: 100%;
-  justify-content: center;
-  align-items: center;
-  margin-top: 40px;
-  gap: 300px;
-}
+  .generator button:hover {
+    background-color: #1787ffff;
+  }
 
-.collection-name, .collection-tags {
-  margin-bottom: 10px;
-}
+  .generator button:active {
+    background-color: #3898ffff;
+  }
 
-.palette-collection-wrapper {
-  display: flex;
-  gap: 10px;
-}
+  .palette-wrapper div {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    transition: transform 0.3s;
+  }
+
+  .palette-wrapper div:hover {
+    transform: scale(1.05);
+  }
+
+  .palette-wrapper div:active {
+    transform: scale(0.9);
+  }
+
+  .palette-wrapper p, img {
+    filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
+    mix-blend-mode: luminosity;
+    opacity: 0;
+    transition: opacity 0.3s linear;
+  }
+
+  .palette-wrapper img {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+  }
+
+  .palette-wrapper div:hover p {
+    opacity: 1;
+  }
+
+  .palette-wrapper div:hover img {
+    opacity: 1;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .controls label {
+    font-weight: bold;
+  }
+
+  .controls select {
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  .mockup-preview {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+  }
+
+  .mockup-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+
+  .mockup-container.dark {
+    background-color: #343434;
+  }
+
+  .mockup-card {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .mockup-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .contrast-level {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    display: block;
+  }
+
+  .visualization-container {
+    display: flex;
+    min-width: 100%;
+    min-height: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+    gap: 300px;
+  }
 </style>

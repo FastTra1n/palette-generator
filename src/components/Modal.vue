@@ -1,15 +1,19 @@
 <template>
   <Teleport to="body">
-    <div class="modal-overlay" @click.self="modalClose">
-      <div class="modal">
-        <div class="modal__header">
-          <h1>{{ title }}</h1>
-        </div>
-        <div class="modal__body">
-          <slot></slot>
-        </div>
+    <Transition name="modal-overlay-fade">
+      <div class="modal-overlay" v-if="show" @click.self="modalClose">
+        <Transition name="modal-scale">
+          <div class="modal" v-if="show">
+            <div class="modal__header">
+              <h1>{{ title }}</h1>
+            </div>
+            <div class="modal__body">
+              <slot></slot>
+            </div>
+          </div>
+        </Transition>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -17,13 +21,14 @@
   export default {
     name: 'Modal',
     props: {
-      title: String
+      title: String,
+      show: Boolean
     },
     emit: ['close'],
 
-    setup(props, context) {
+    setup(props, { emit }) {
       const modalClose = () => {
-        context.emit('close');
+        emit('close');
       }
 
       return {
@@ -46,7 +51,6 @@
     align-items: center;
     z-index: 1000;
     padding: 20px;
-    animation: overlayBlur 0.3s ease-out;
   }
 
   .modal {
@@ -61,5 +65,22 @@
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+  }
+
+  .modal-overlay-fade-enter-active, .modal-overlay-fade-leave-active {
+    transition: opacity 0.3s ease;
+  }
+
+  .modal-overlay-fade-enter-from, .modal-overlay-fade-leave-to {
+    opacity: 0;
+  }
+
+  .modal-scale-enter-active, .modal-scale-leave-active {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .modal-scale-enter-from, .modal-scale-leave-to {
+    transform: scale(0.95);
+    opacity: 0;
   }
 </style>
