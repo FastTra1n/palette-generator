@@ -60,49 +60,8 @@
         <option value="professional">Профессиональное</option>
       </select>
     </div>
-
-    <div class="visualization-container">
-      <div class="mockup-preview" :style="{ backgroundColor: palette.length > 5 ? palette[5].hsl : '#fff', color: palette.length > 6 ? palette[6].hsl : '#000'}">
-        <h2>Превью в mockup интерфейсе</h2>
-        <div class="mockup-container" :class="{ dark: darkTheme }">
-          <h3 :style="{ color: palette.length > 0 ? palette[0].hsl : '#000' }">Это заголовок карточки</h3>
-          <span class="contrast-level">Контраст заголовка: {{ getContrastLevel(darkTheme ? "#343434" : "#f9f9f9", palette.length > 0 ? palette[0].hsl : '#000') }}</span>
-
-          <div class="mockup-card" :style="{ backgroundColor: palette.length > 1 ? palette[1].hsl : '#fff' }">
-            <p :style="{ color: palette.length > 2 ? palette[2].hsl : '#000' }">А это текст внутри карточки</p>
-            <span class="contrast-level">Контраст текста в карточке: {{ getContrastLevel(palette.length > 1 ? palette[1].hsl : '#fff', palette.length > 2 ? palette[2].hsl : '#000') }}</span>
-          </div>
-
-          <button class="mockup-button" :style="{ backgroundColor: palette.length > 3 ? palette[3].hsl : '#007bff', color: palette.length > 4 ? palette[4].hsl : '#fff' }">Ещё и с кнопкой!</button>
-          <span class="contrast-level">Контраст кнопки: {{ getContrastLevel(palette.length > 3 ? palette[3].hsl : '#007bff', palette.length > 4 ? palette[4].hsl : '#fff') }}</span>
-        </div>
-      </div>
-
-      <canvas ref="color-wheel" width="400" height="400"></canvas>
-    </div>
-
-    <div class="collections-section">
-      <h2>Сохранённые коллекции</h2>
-      <div class="collections-list">
-        <div class="collection-card" v-for="(collection, index) in paletteCollections" :key="index">
-          <div class="collection-header">
-            <h3>{{ collection.name }}</h3>
-          </div>
-          <div class="collection-tags">
-            <span v-for="(tag, tagIndex) in collection.tags" :key="tagIndex" class="tag">{{ tag }}</span>
-          </div>
-          <div class="collection-palette">
-            <div class="palette-collection-wrapper">
-              <div class="color-watch" v-for="(hsl, colorIndex) in collection.palettes" :key="colorIndex" :style="{ width: '50px', height: '50px', backgroundColor: hsl.hsl }"></div>
-            </div>
-          </div>
-          <div class="collection-actions">
-            <button @click="loadSelectedCollection(index)">Загрузить</button>
-            <button @click="deleteCollection(index)">Удалить</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    
+    <canvas ref="color-wheel" width="400" height="400"></canvas>
   </div>
 </template>
 
@@ -128,7 +87,6 @@
       const colorWheelCanvas = useTemplateRef('color-wheel');
 
       const showCreateCollection = ref(false);
-      const paletteCollections = ref([]);
       const collectionName = ref('');
       const collectionTags = ref('');
 
@@ -300,29 +258,6 @@
         palette.value[index].locked = !palette.value[index].locked;
       };
 
-      const getLuminance = (rgb) => {
-        const [r, g, b] = rgb.match(/\d+/g).map(Number).map(c => c / 255);
-        const a = [r, g, b].map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
-        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
-      };
-
-      const calculateContrast = (bgColor, textColor) => {
-        const bgRGB = bgColor.startsWith('hsl') ? hslToRGB(bgColor) : hexToRGB(bgColor);
-        const textRGB = textColor.startsWith('hsl') ? hslToRGB(textColor) : hexToRGB(textColor);
-        const luminanceBg = getLuminance(bgRGB);
-        const luminanceText = getLuminance(textRGB);
-        const brighter = Math.max(luminanceBg, luminanceText);
-        const darker = Math.min(luminanceBg, luminanceText);
-        return (brighter + 0.05) / (darker + 0.05);
-      };
-
-      const getContrastLevel = (bg, fg) => {
-        const ratio = calculateContrast(bg, fg);
-        if (ratio >= 7) return 'AAA';
-        if (ratio >= 4.5) return 'AA';
-        return 'Недостаточно';
-      };
-
       const drawColorWheel = () => {
         const canvas = colorWheelCanvas.value;
         const ctx = canvas.getContext('2d');
@@ -425,23 +360,6 @@
         paletteCollections.value = collections;
       };
 
-      const loadCollections = () => {
-        const savedData = localStorage.getItem('paletteCollection');
-        paletteCollections.value = savedData ? JSON.parse(savedData) : [];
-      };
-
-      const loadSelectedCollection = (index) => {
-        palette.value = paletteCollections.value[index].palettes;
-        saveToStorage();
-      };
-
-      const deleteCollection = (index) => {
-        if (confirm('Вы уверены, что хотите удалить коллекцию?')) {
-          paletteCollections.value.splice(index, 1);
-        }
-        localStorage.setItem('paletteCollection', JSON.stringify(paletteCollections.value));
-      };
-
       watch(numColors, () => {
         palette.value = [];
         generatePalette();
@@ -453,7 +371,6 @@
 
       onMounted(() => {
         loadFromStorage();
-        loadCollections();
         drawColorWheel();
       });
 
@@ -468,7 +385,6 @@
         showCreateCollection,
         collectionName,
         collectionTags,
-        paletteCollections,
         generatePalette,
         savePalette,
         hslToHex,
@@ -477,11 +393,7 @@
         hexToRGB,
         copyCode,
         pinColor,
-        getContrastLevel,
         handleCollectionCreate,
-        loadCollections,
-        loadSelectedCollection,
-        deleteCollection
       };
     },
   };
@@ -550,88 +462,6 @@
     gap: 50px;
   }
 
-  .collections-section {
-    margin-top: 40px;
-    width: 100%;
-  }
-
-  .collections-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .collection-card {
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
-  }
-
-  .collection-card:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  }
-
-  .collection-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .collection-tags {
-    display: flex;
-    gap: 5px;
-  }
-
-  .tag {
-    padding: 5px 10px;
-    background-color: #e0e0e0;
-    border-radius: 20px;
-    font-size: 12px;
-  }
-
-  .palette-collection-wrapper {
-    padding: 20px 0;
-    display: flex;
-    gap: 10px;
-  }
-
-  .collection-palette {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-  }
-
-  .color-swatch {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-  }
-
-  .collection-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .collection-actions button {
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .collection-actions button:first-child {
-    background-color: #007bff;
-    color: white;
-  }
-
-  .collection-actions button:last-child {
-    background-color: #ff4d4d;
-    color: white;
-  }
-
   .generator button:hover {
     background-color: #1787ffff;
   }
@@ -693,53 +523,5 @@
   .controls select {
     padding: 5px;
     border-radius: 5px;
-  }
-
-  .mockup-preview {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-  }
-
-  .mockup-container {
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-  }
-
-  .mockup-container.dark {
-    background-color: #343434;
-  }
-
-  .mockup-card {
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
-  }
-
-  .mockup-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .contrast-level {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-    display: block;
-  }
-
-  .visualization-container {
-    display: flex;
-    min-width: 100%;
-    min-height: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-top: 40px;
-    gap: 300px;
   }
 </style>
