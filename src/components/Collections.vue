@@ -16,8 +16,22 @@
           </div>
         </div>
         <div class="collection-actions">
-          <button @click="loadSelectedCollection(index)">Загрузить</button>
-          <button @click="deleteCollection(index)">Удалить</button>
+          <button class="load-button" @click="loadSelectedCollection(index)">Загрузить</button>
+          <button class="edit-button" @click="editSelectedCollection(index)">Редактировать</button>
+          <button class="delete-button" @click="deleteSelectedCollection(index)">Удалить</button>
+          <Modal title="Редактировать коллекцию" :show="showCreateCollection" @close="showCreateCollection = false">
+            <form @submit.prevent="handleCollectionEdit">
+              <div class="collection-name">
+                <label>Введите название коллекции:</label>
+                <input type="text" v-model="editCollectionName" required>
+              </div>
+              <div class="collection-tags">
+                <label>Укажите теги коллекции:</label>
+                <input type="text" v-model="editCollectionTags">
+              </div>
+              <button type="submit">Сохранить</button>
+            </form>
+          </Modal>
         </div>
       </div>
     </div>
@@ -27,8 +41,13 @@
 <script>
   import { ref, onMounted, computed } from 'vue';
 
+  import Modal from './Modal.vue';
+
   export default {
     name: 'Collections',
+    components: {
+      Modal,
+    },
 
     setup() {
       const palette = ref([]);
@@ -36,6 +55,11 @@
       const displayFormat = ref('HEX');
       const paletteCollections = ref([]);
       const searchQuery = ref('');
+
+      const showCreateCollection = ref(false);
+      const editCollectionIndex = ref(-1);
+      const editCollectionName = ref('');
+      const editCollectionTags = ref('');
       
       const loadPalette = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -62,7 +86,14 @@
         saveToStorage();
       };
 
-      const deleteCollection = (index) => {
+      const editSelectedCollection = (index) => {
+        editCollectionIndex.value = index;
+        editCollectionName.value = filterCollections.value[index].name;
+        editCollectionTags.value = filterCollections.value[index].tags.join(' ');
+        showCreateCollection.value = true;
+      };
+
+      const deleteSelectedCollection = (index) => {
         if (confirm('Вы уверены, что хотите удалить коллекцию?')) {
           paletteCollections.value.splice(index, 1);
         }
@@ -78,6 +109,20 @@
         });
       });
 
+      const handleCollectionEdit = (e) => {
+        e.preventDefault();
+
+        const savedData = localStorage.getItem('paletteCollection');
+        const collections = savedData ? JSON.parse(savedData) : [];
+
+        const tags = editCollectionTags.value ? editCollectionTags.value.split(' ') : [];
+        collections[editCollectionIndex.value].name = editCollectionName.value;
+        collections[editCollectionIndex.value].tags = tags;
+        showCreateCollection.value = false;
+        paletteCollections.value = collections;
+        localStorage.setItem('paletteCollection', JSON.stringify(collections));
+      };
+
       onMounted(() => {
         loadPalette();
         loadCollections();
@@ -87,14 +132,46 @@
         paletteCollections,
         searchQuery,
         filterCollections,
+        showCreateCollection,
+        editCollectionName,
+        editCollectionTags,
         loadSelectedCollection,
-        deleteCollection,
+        editSelectedCollection,
+        deleteSelectedCollection,
+        handleCollectionEdit
       };
     },
   };
 </script>
 
 <style scoped>
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+
+  button[type="submit"] {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
   button {
     width: 200px;
     height: 50px;
@@ -190,29 +267,42 @@
     cursor: pointer;
   }
 
-  .collection-actions button:first-child {
+  .load-button {
     background-color: #007bff;
     color: white;
   }
 
-  .collection-actions button:first-child:hover {
+  .load-button:hover {
     background-color: #1787ffff;
   }
 
-  .collection-actions button:first-child:active {
+  .load-button:active {
     background-color: #3898ffff;
   }
 
-  .collection-actions button:last-child {
+  .edit-button {
+    background-color: rgb(255, 172, 39);
+    color: white;
+  }
+
+  .edit-button:hover {
+    background-color: rgb(255, 180, 58);
+  }
+
+  .edit-button:active {
+    background-color: rgb(255, 188, 81);
+  }
+
+  .delete-button {
     background-color: #ff4d4d;
     color: white;
   }
 
-  .collection-actions button:last-child:hover {
+  .delete-button:hover {
     background-color: #ff5757;
   }
 
-  .collection-actions button:last-child:active {
+  .delete-button:active {
     background-color: #ff6767;
   }
 </style>

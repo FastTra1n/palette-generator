@@ -13,7 +13,7 @@
         <form @submit.prevent="handleCollectionCreate">
           <div class="collection-name">
             <label>Введите название коллекции:</label>
-            <input type="text" v-model="collectionName">
+            <input type="text" v-model="collectionName" required>
           </div>
           <div class="collection-tags">
             <label>Укажите теги коллекции:</label>
