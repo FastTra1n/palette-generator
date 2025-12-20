@@ -1,8 +1,9 @@
 <template>
+  <input class="search-input" type="text" placeholder="Фильтр по имени или тегам..." v-model="searchQuery">
   <div class="collections-section">
     <h2>Сохранённые коллекции</h2>
     <div class="collections-list">
-      <div class="collection-card" v-for="(collection, index) in paletteCollections" :key="index">
+      <div class="collection-card" v-for="(collection, index) in filterCollections" :key="index">
         <div class="collection-header">
           <h3>{{ collection.name }}</h3>
         </div>
@@ -24,7 +25,7 @@
 </template>
 
 <script>
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
 
   export default {
     name: 'Collections',
@@ -34,13 +35,10 @@
       const numColors = ref(5);
       const displayFormat = ref('HEX');
       const paletteCollections = ref([]);
+      const searchQuery = ref('');
       
       const loadPalette = () => {
         const savedData = localStorage.getItem('paletteData');
-        if (!savedData) {
-          generatePalette();
-          return;
-        }
         const data = JSON.parse(savedData);
         palette.value = data.savedPalette;
       };
@@ -60,7 +58,7 @@
       };
 
       const loadSelectedCollection = (index) => {
-        palette.value = paletteCollections.value[index].palettes;
+        palette.value = filterCollections.value[index].palettes;
         saveToStorage();
       };
 
@@ -71,6 +69,15 @@
         localStorage.setItem('paletteCollection', JSON.stringify(paletteCollections.value));
       };
 
+      const filterCollections = computed(() => {
+        const query = searchQuery.value.toLowerCase();
+        return paletteCollections.value.filter(collection => {
+          if (collection.name.toLowerCase().includes(query) || collection.tags.some(t => t.toLowerCase().includes(query))) {
+            return true;
+          }
+        });
+      });
+
       onMounted(() => {
         loadPalette();
         loadCollections();
@@ -78,6 +85,8 @@
 
       return {
         paletteCollections,
+        searchQuery,
+        filterCollections,
         loadSelectedCollection,
         deleteCollection,
       };
@@ -98,6 +107,15 @@
     cursor: pointer;
     transition: background-color 0.3s;
     margin-bottom: 10px;
+  }
+
+  .search-input {
+    width: 30%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
   }
 
   .collections-section {
