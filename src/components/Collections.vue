@@ -195,8 +195,24 @@
     color: white;
   }
 
+  .collection-actions button:first-child:hover {
+    background-color: #1787ffff;
+  }
+
+  .collection-actions button:first-child:active {
+    background-color: #3898ffff;
+  }
+
   .collection-actions button:last-child {
     background-color: #ff4d4d;
     color: white;
+  }
+
+  .collection-actions button:last-child:hover {
+    background-color: #ff5757;
+  }
+
+  .collection-actions button:last-child:active {
+    background-color: #ff6767;
   }
 </style>
