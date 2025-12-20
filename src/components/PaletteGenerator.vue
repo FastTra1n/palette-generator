@@ -89,6 +89,7 @@
       const showCreateCollection = ref(false);
       const collectionName = ref('');
       const collectionTags = ref('');
+      const collectionFavorite = ref(false);
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -350,7 +351,8 @@
         collections.push({
           name: collectionName.value,
           tags: collectionTags.value.split(' '),
-          palettes: palette.value
+          palettes: palette.value,
+          favorite: collectionFavorite.value
         });
         localStorage.setItem('paletteCollection', JSON.stringify(collections));
 

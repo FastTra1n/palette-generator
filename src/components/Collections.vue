@@ -3,7 +3,7 @@
   <div class="collections-section">
     <h2>Сохранённые коллекции</h2>
     <div class="collections-list">
-      <div class="collection-card" v-for="(collection, index) in filterCollections" :key="index">
+      <div class="collection-card" :class="{favorite: collection.favorite}" v-for="(collection, index) in filterCollections" :key="index">
         <div class="collection-header">
           <h3>{{ collection.name }}</h3>
         </div>
@@ -33,6 +33,8 @@
             </form>
           </Modal>
         </div>
+        <img class="favorite-button" src="../assets/unfavorite.png" @click="makeFavorite(index)" v-if="!collection.favorite">
+        <img class="favorite-button" src="../assets/favorite.png" @click="makeFavorite(index)" v-else>
       </div>
     </div>
   </div>
@@ -100,13 +102,20 @@
         localStorage.setItem('paletteCollection', JSON.stringify(paletteCollections.value));
       };
 
+      const makeFavorite = (index) => {
+        paletteCollections.value[index].favorite = !paletteCollections.value[index].favorite;
+        localStorage.setItem('paletteCollection', JSON.stringify(paletteCollections.value));
+      };
+
       const filterCollections = computed(() => {
         const query = searchQuery.value.toLowerCase();
-        return paletteCollections.value.filter(collection => {
-          if (collection.name.toLowerCase().includes(query) || collection.tags.some(t => t.toLowerCase().includes(query))) {
-            return true;
-          }
-        });
+        return paletteCollections.value
+          .sort((a, b) => b.favorite - a.favorite)
+          .filter(collection => {
+            if (collection.name.toLowerCase().includes(query) || collection.tags.some(t => t.toLowerCase().includes(query))) {
+              return true;
+            }
+          });
       });
 
       const handleCollectionEdit = (e) => {
@@ -138,6 +147,7 @@
         loadSelectedCollection,
         editSelectedCollection,
         deleteSelectedCollection,
+        makeFavorite,
         handleCollectionEdit
       };
     },
@@ -207,11 +217,16 @@
   }
 
   .collection-card {
+    position: relative;
     padding: 15px;
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+    transition: box-shadow 0.3s, border 0.3s;
+  }
+
+  .collection-card.favorite {
+    border: 1px solid #ffd900;
   }
 
   .collection-card:hover {
@@ -304,5 +319,12 @@
 
   .delete-button:active {
     background-color: #ff6767;
+  }
+
+  .favorite-button {
+    position: absolute;
+    padding: 10px;
+    top: 0;
+    right: 0;
   }
 </style>
