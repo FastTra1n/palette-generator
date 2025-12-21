@@ -1,7 +1,7 @@
 <template>
   <div class="export-section">
     <h2>Экспорт цветов</h2>
-    <div v-if="palette.length > 0">
+    <div class="export-formats" v-if="palette.length > 0">
       <div class="export-format">
         <h3>CSS Variables</h3>
         <pre><code>{{ cssVariables }}</code></pre>
@@ -17,9 +17,11 @@
         <pre><code>{{ tailwindConfig }}</code></pre>
         <button @click="copyCode(tailwindConfig)">Скопировать код</button>
       </div>
-      <div class="export-format">
-
-      </div>
+    </div>
+    <div class="css-example">
+      <h3>Пример готового CSS кода</h3>
+      <pre><code>{{ cssCode }}</code></pre>
+      <button @click="copyCode(cssCode)">Скопировать код</button>
     </div>
   </div>
 </template>
@@ -65,6 +67,19 @@ import { ref, onMounted, computed } from 'vue';
         return code;
       });
 
+      const cssCode = computed(() => {
+        let code = ":root {\n";
+        for (let i = 0; i < palette.value.length; i++) {
+          code += `  --color-${i+1}: ${palette.value[i].hsl};\n`
+        }
+        code += "}\n\n";
+
+        code += `.bg-color1 {\n  background-color: var(--color-1);\n}\n\n`;
+        code += `.text-color2 {\n  color: var(--color-2);\n}\n\n`;
+        code += `.border-color3 {\n  border-color: var(--color-3);\n}`;
+        return code;
+      });
+
       const copyCode = async (code) => {
         await navigator.clipboard.writeText(code);
       }
@@ -78,6 +93,7 @@ import { ref, onMounted, computed } from 'vue';
         cssVariables,
         scssVariables,
         tailwindConfig,
+        cssCode,
         copyCode
       };
     },
@@ -90,12 +106,32 @@ import { ref, onMounted, computed } from 'vue';
     text-align: left;
   }
 
+  .export-formats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+  }
+
   .export-format {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 30px;
   }
 
-  pre {
+  .css-example {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .css-example pre{
     width: 15%;
+  }
+
+  pre {
     background: #f4f4f4;
     padding: 15px;
     border-radius: 5px;
