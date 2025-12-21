@@ -4,6 +4,7 @@
       <router-link to="/" class="nav-link">Генератор</router-link>
       <router-link to="/mockup" class="nav-link">Предпросмотр</router-link>
       <router-link to="/collections" class="nav-link">Коллекции</router-link>
+      <router-link to="/export" class="nav-link">Экспорт цветов</router-link>
     </div>
     <router-view></router-view>
   </div>
