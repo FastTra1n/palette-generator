@@ -65,7 +65,7 @@
 <script>
   import { ref, onMounted, watch, useTemplateRef } from 'vue';
   
-  import Modal from './Modal.vue';
+  import Modal from '../components/Modal.vue';
   
   export default {
     name: 'RandomPaletteGenerator',

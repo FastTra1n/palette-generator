@@ -43,7 +43,7 @@
 <script>
   import { ref, onMounted, computed } from 'vue';
 
-  import Modal from './Modal.vue';
+  import Modal from '../components/Modal.vue';
 
   export default {
     name: 'Collections',

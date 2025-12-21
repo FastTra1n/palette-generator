@@ -10,14 +10,8 @@
 </template>
 
 <script>
-import RandomPaletteGenerator from './components/PaletteGenerator.vue'
-
 export default {
-  name: 'App',
-
-  components: {
-    RandomPaletteGenerator,
-  }
+  name: 'App'
 };
 </script>
 

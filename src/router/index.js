@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import PaletteGenerator from '@/components/PaletteGenerator.vue';
-import Mockup from '@/components/Mockup.vue';
-import Collections from '@/components/Collections.vue';
+import PaletteGenerator from '../views/PaletteGenerator.vue';
+import Mockup from '../views/Mockup.vue';
+import Collections from '../views/Collections.vue';
 
 const routes = [
   {
