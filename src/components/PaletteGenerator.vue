@@ -38,9 +38,6 @@
         <option value="RGB">RGB</option>
       </select>
 
-      <label>Тёмная тема фона:</label>
-      <input type="checkbox" v-model="darkTheme">
-
       <label>Выбрать базовый цвет:</label>
       <input type="color" v-model="selectedBaseColor">
 

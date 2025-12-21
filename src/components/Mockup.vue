@@ -15,6 +15,10 @@
         <span class="contrast-level">Контраст кнопки: {{ getContrastLevel(palette.length > 3 ? palette[3].hsl : '#007bff', palette.length > 4 ? palette[4].hsl : '#fff') }}</span>
       </div>
     </div>
+    <div class="theme-container">
+      <label>Тёмная тема фона:</label>
+      <input type="checkbox" v-model="darkTheme">
+    </div>
   </div>
 </template>
 
@@ -26,6 +30,7 @@
 
     setup() {
       const palette = ref([]);
+      const darkTheme = ref(false);
 
       const loadPalette = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -96,6 +101,7 @@
       
       return {
         palette,
+        darkTheme,
         getContrastLevel
       };
     },
@@ -103,6 +109,15 @@
 </script>
 
 <style scoped>
+  label {
+    font-weight: bold;
+  }
+
+  select {
+    padding: 5px;
+    border-radius: 5px;
+  }
+
   .visualization-container {
     display: flex;
     min-width: 100%;
