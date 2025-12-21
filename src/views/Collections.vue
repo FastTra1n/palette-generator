@@ -18,6 +18,7 @@
         <div class="collection-actions">
           <button class="load-button" @click="loadSelectedCollection(index)">Загрузить</button>
           <button class="edit-button" @click="editSelectedCollection(index)">Редактировать</button>
+          <button class="share-button" @click="shareSelectedCollection(index)">Поделиться</button>
           <button class="delete-button" @click="deleteSelectedCollection(index)">Удалить</button>
           <Modal title="Редактировать коллекцию" :show="showCreateCollection" @close="showCreateCollection = false">
             <form @submit.prevent="handleCollectionEdit">
@@ -53,6 +54,7 @@
 
     setup() {
       const palette = ref([]);
+      const shareLinks = ref({});
       const numColors = ref(5);
       const displayFormat = ref('HEX');
       const paletteCollections = ref([]);
@@ -94,6 +96,15 @@
         editCollectionTags.value = filterCollections.value[index].tags.join(' ');
         showCreateCollection.value = true;
       };
+
+      const shareSelectedCollection = async (index) => {
+        const collection = filterCollections.value[index];
+        const encodedPalette = btoa(JSON.stringify(collection.palettes));
+        const link = `${window.location.origin}?palette=${encodedPalette}`;
+        shareLinks.value[index] = link;
+
+        await navigator.clipboard.writeText(link);
+      }
 
       const deleteSelectedCollection = (index) => {
         if (confirm('Вы уверены, что хотите удалить коллекцию?')) {
@@ -146,6 +157,7 @@
         editCollectionTags,
         loadSelectedCollection,
         editSelectedCollection,
+        shareSelectedCollection,
         deleteSelectedCollection,
         makeFavorite,
         handleCollectionEdit
@@ -306,6 +318,19 @@
 
   .edit-button:active {
     background-color: rgb(255, 188, 81);
+  }
+
+  .share-button {
+    background-color: rgb(18, 198, 204);
+    color: white;
+  }
+
+  .share-button:hover {
+    background-color: rgb(25, 209, 216);
+  }
+
+  .share-button:active {
+    background-color: rgb(42, 223, 230);
   }
 
   .delete-button {

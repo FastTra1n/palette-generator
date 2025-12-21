@@ -64,6 +64,7 @@
 
 <script>
   import { ref, onMounted, watch, useTemplateRef } from 'vue';
+  import { useRoute } from 'vue-router';
   
   import Modal from '../components/Modal.vue';
   
@@ -87,6 +88,8 @@
       const collectionName = ref('');
       const collectionTags = ref('');
       const collectionFavorite = ref(false);
+
+      const route = useRoute();
 
       const loadFromStorage = () => {
         const savedData = localStorage.getItem('paletteData');
@@ -370,6 +373,16 @@
 
       onMounted(() => {
         loadFromStorage();
+        const encodedPalette = route.query.palette
+        if (encodedPalette) {
+          try {
+            const decoded = JSON.parse(atob(encodedPalette));
+            palette.value = decoded;
+            saveToStorage();
+          } catch (e) {
+            console.error('Ошибка: при декодировании ссылки на палитру произошла ошибка! Проверьте корректность ссылки и/или рассылаемой палитры.')
+          }
+        }
         drawColorWheel();
       });
 
